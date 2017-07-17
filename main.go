@@ -2,27 +2,50 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 )
 
-// Indiegogo gets data from Indiegogo
+// Indiegogo struct for donors names from response
 type Indiegogo struct {
 	Response []struct {
 		By string `json:"by"`
 	} `json:"response"`
 }
 
+var record Indiegogo
+
 func main() {
+	updateNames()
 	http.HandleFunc("/", handler)
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))
 
 }
 
-//handler echoes the donors
+// handler echoes the donors
 func handler(w http.ResponseWriter, r *http.Request) {
-	url := fmt.Sprintf("https://api.indiegogo.com/1.1/campaigns/YOUR_ID/contributions.json?api_token=API_TOKEN&per_page=200")
+
+	if r.Method != "GET" {
+		http.Error(w, "Unsupported HTTP Method", http.StatusMethodNotAllowed)
+		return
+	}
+
+	donors, err := json.Marshal(record.Response)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(donors)
+
+	return
+
+}
+
+func updateNames() {
+	url := "https://api.indiegogo.com/1.1/campaigns/YOUR_ID/contributions.json?api_token=API_TOKEN&per_page=200"
 
 	// Build the request
 	req, err := http.NewRequest("GET", url, nil)
@@ -31,10 +54,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// For control over HTTP client headers,
-	// redirect policy, and other settings,
-	// create a Client
-	// A Client is an HTTP client
 	client := &http.Client{}
 
 	// Send the request via a client
@@ -46,19 +65,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Callers should close resp.Body
-	// when done reading from it
 	// Defer the closing of the body
 	defer resp.Body.Close()
-
-	// Fill the record with the data from the JSON
-	var record Indiegogo
 
 	// Use json.Decode for reading streams of JSON data
 	if err := json.NewDecoder(resp.Body).Decode(&record); err != nil {
 		log.Println(err)
 	}
-	// This should show the Donor
-	fmt.Fprintf(w, "Donors: %s", record.Response)
-
 }
