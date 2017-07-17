@@ -22,7 +22,7 @@ func main() {
 
 }
 
-// handler echoes the donors
+// handler returns JSON with indiegogo donors
 func handler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != "GET" {
@@ -30,16 +30,23 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	donors, err := json.Marshal(record.Response)
+	if record.Response == nil {
+		w.Header().Set("Content-Type", "text/plain")
+		w.Write([]byte("Error receiving JSON.\n"))
+	} else {
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		donors, err := json.Marshal(record.Response)
+
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			w.Header().Set("Content-Type", "text/plain")
+			w.Write([]byte("Error formating JSON.\n"))
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(donors)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(donors)
-
 	return
 
 }
