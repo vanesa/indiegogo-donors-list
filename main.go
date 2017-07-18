@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
 // Indiegogo struct for donors names from response
@@ -51,24 +53,24 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func updateNames() {
-	url := "https://api.indiegogo.com/1.1/campaigns/YOUR_ID/contributions.json?api_token=API_TOKEN&per_page=200"
+const Urlfmt = "https://api.indiegogo.com/1.1/campaigns/%s/contributions.json?api_token=%s&per_page=200"
 
-	// Build the request
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		log.Fatal("NewRequest: ", err)
-		return
-	}
+func updateNames() {
+
+	// get env vars
+	id := os.Getenv("IGG_ID")
+	token := os.Getenv("IGG_API_TOKEN")
+
+	url := fmt.Sprintf(Urlfmt, id, token)
 
 	client := &http.Client{}
 
 	// Send the request via a client
 	// Do sends an HTTP request and
 	// returns an HTTP response
-	resp, err := client.Do(req)
+	resp, err := client.Get(url)
 	if err != nil {
-		log.Fatal("Do: ", err)
+		log.Fatal("Get: ", err)
 		return
 	}
 
