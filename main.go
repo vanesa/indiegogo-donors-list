@@ -53,6 +53,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Urlfmt is the IndieGoGo endpoint url with string verbs to insert env vars
 const Urlfmt = "https://api.indiegogo.com/1.1/campaigns/%s/contributions.json?api_token=%s&per_page=200"
 
 func updateNames() {
@@ -63,12 +64,10 @@ func updateNames() {
 
 	url := fmt.Sprintf(Urlfmt, id, token)
 
-	client := &http.Client{}
-
 	// Send the request via a client
 	// Do sends an HTTP request and
 	// returns an HTTP response
-	resp, err := client.Get(url)
+	resp, err := http.Get(url)
 	if err != nil {
 		log.Fatal("Get: ", err)
 		return
