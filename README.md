@@ -1,4 +1,4 @@
 # indiegogo-donors-list
 
-* Replace YOUR_ID with the Indiegogo Fundraisers ID
-* Replace API_TOKEN with your Indiegogo API Token
+To run:
+* $ IGG_ID=[YOUR INDIEGOGO ID] IGG_API_TOKEN=[YOUR INDIEGOGO API TOKEN] go run main.go
