@@ -56,13 +56,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 // Urlfmt is the IndieGoGo endpoint url with string verbs to insert env vars
 const Urlfmt = "https://api.indiegogo.com/1.1/campaigns/%s/contributions.json?api_token=%s&per_page=200"
 
+// get env vars
+var id = os.Getenv("IGG_ID")
+var token = os.Getenv("IGG_API_TOKEN")
+
+var url = fmt.Sprintf(Urlfmt, id, token)
+
 func updateNames() {
-
-	// get env vars
-	id := os.Getenv("IGG_ID")
-	token := os.Getenv("IGG_API_TOKEN")
-
-	url := fmt.Sprintf(Urlfmt, id, token)
 
 	// Send the request via a client
 	// Do sends an HTTP request and
