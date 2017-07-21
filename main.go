@@ -8,6 +8,10 @@ import (
 	"os"
 )
 
+// get env vars
+var envUserId = os.Getenv("IGG_ID")
+var envApiToken = os.Getenv("IGG_API_TOKEN")
+
 // Indiegogo struct for donors names from response
 type Indiegogo struct {
 	Response []struct {
@@ -18,7 +22,7 @@ type Indiegogo struct {
 var record Indiegogo
 
 func main() {
-	updateNames()
+	updateNames(envUserId, envApiToken)
 	http.HandleFunc("/", handler)
 	log.Fatal(http.ListenAndServe("localhost:8000", nil))
 
@@ -33,22 +37,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if record.Response == nil {
-		w.Header().Set("Content-Type", "text/plain")
-		w.Write([]byte("Error receiving JSON.\n"))
-	} else {
-
-		donors, err := json.Marshal(record.Response)
-
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			w.Header().Set("Content-Type", "text/plain")
-			w.Write([]byte("Error formating JSON.\n"))
-			return
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.Write(donors)
+		http.Error(w, "Error receiving JSON.", http.StatusInternalServerError)
+		return
 	}
+
+	donors, err := json.Marshal(record.Response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(donors)
+
 	return
 
 }
@@ -56,13 +57,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 // Urlfmt is the IndieGoGo endpoint url with string verbs to insert env vars
 const Urlfmt = "https://api.indiegogo.com/1.1/campaigns/%s/contributions.json?api_token=%s&per_page=200"
 
-// get env vars
-var id = os.Getenv("IGG_ID")
-var token = os.Getenv("IGG_API_TOKEN")
+func updateNames(id, token string) {
 
-var url = fmt.Sprintf(Urlfmt, id, token)
-
-func updateNames() {
+	var url = fmt.Sprintf(Urlfmt, id, token)
 
 	// Send the request via a client
 	// Do sends an HTTP request and
